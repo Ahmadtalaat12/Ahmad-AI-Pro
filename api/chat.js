@@ -1,7 +1,6 @@
 import { Groq } from 'groq-sdk';
 
 export default async function handler(req, res) {
-  // استخدام المفتاح اللي إنت حاطه أصلاً في إعدادات Vercel
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
   const { message } = req.body;
 
