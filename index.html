@@ -1,47 +1,96 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <title>Ahmad AI Pro</title>
-    <style>
-        body { background: #121212; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        #chat { width: 100%; max-width: 400px; background: #1e1e1e; border-radius: 10px; padding: 15px; }
-        #msgs { height: 350px; overflow-y: auto; display: flex; flex-direction: column; }
-        .msg { padding: 10px; margin: 5px; border-radius: 8px; max-width: 80%; }
-        .u { align-self: flex-end; background: #007bff; }
-        .b { align-self: flex-start; background: #333; color: #00ccaa; }
-        input { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #2c2c2c; color: white; }
-        button { padding: 10px; background: #00ccaa; border: none; border-radius: 5px; color: black; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <h2>Ahmad AI Pro</h2>
-    <div id="chat">
-        <div id="msgs"></div>
-        <div style="display:flex; gap:5px; margin-top:10px;">
-            <input type="text" id="i" placeholder="اكتب هنا...">
-            <button onclick="send()">إرسال</button>
-        </div>
-    </div>
-    <script>
-        async function send() {
-            const i = document.getElementById("i");
-            const m = document.getElementById("msgs");
-            if(!i.value) return;
-            const text = i.value;
-            m.innerHTML += `<div class="msg u">${text}</div>`;
-            i.value = "";
-            try {
-                const res = await fetch("/api/chat", {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({message: text})
-                });
-                const d = await res.json();
-                m.innerHTML += `<div class="msg b">${d.reply || "مفيش رد"}</div>`;
-            } catch (e) { m.innerHTML += `<div class="msg b">خطأ اتصال</div>`; }
-            m.scrollTop = m.scrollHeight;
-        }
-    </script>
-</body>
-</html>
+/* تنسيق الصفحة بالكامل */
+body {
+    background-color: #0f172a; /* لون غامق شيك */
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* حاوية الشات */
+#chat-container {
+    width: 95%;
+    max-width: 600px; /* عرض مناسب للموبايل والكمبيوتر */
+    height: 90vh;
+    background: #1e293b;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #334155;
+}
+
+/* الهيدر (العنوان) */
+header {
+    background: #0ea5e9;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+/* منطقة الرسائل */
+#chat-box {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* شكل فقاعات الرسائل */
+.message {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 15px;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+.user-message {
+    align-self: flex-end;
+    background: #0ea5e9;
+    color: white;
+    border-bottom-right-radius: 2px;
+}
+
+.ai-message {
+    align-self: flex-start;
+    background: #334155;
+    color: #f1f5f9;
+    border-bottom-left-radius: 2px;
+}
+
+/* منطقة الإدخال */
+.input-area {
+    padding: 15px;
+    background: #1e293b;
+    display: flex;
+    gap: 10px;
+    border-top: 1px solid #334155;
+}
+
+input {
+    flex: 1;
+    background: #0f172a;
+    border: 1px solid #334155;
+    padding: 12px;
+    color: white;
+    border-radius: 8px;
+    outline: none;
+}
+
+button {
+    background: #0ea5e9;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
