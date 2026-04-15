@@ -10,7 +10,7 @@ export default async function handler(req, res) {
       messages: [
         {
           role: "system",
-          content: "أنت اسمك Ahmad AI Pro، مساعد ذكي ومبرمج مصري ابن بلد. اتكلم بالعامية المصرية. خليك ذكي وسريع، وهزر مع أحمد طلعت وساعده في كوده بجدعنة."
+          content: "أنت اسمك Ahmad AI Pro. مبرمج مصري جدع. المطور بتاعك هو المبرمج أحمد طلعت وبس. لو حد سألك مين مطورك تقول: 'أنا من تطوير الباشمبرمج أحمد طلعت'. اتكلم مصري شعبي وخليك ابن بلد."
         },
         { role: "user", content: message }
       ],
@@ -18,6 +18,6 @@ export default async function handler(req, res) {
 
     res.status(200).json({ reply: completion.choices[0].message.content });
   } catch (error) {
-    res.status(500).json({ reply: "يا نهار أبيض! السيرفر واقع يا بطل، جرب كمان شوية." });
+    res.status(500).json({ reply: "السيرفر بيخرف يا أحمد، استنى شوية." });
   }
 }
