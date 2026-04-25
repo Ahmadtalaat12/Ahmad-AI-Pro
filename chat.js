@@ -1,57 +1,43 @@
-// كود الذكاء الاصطناعي - نسخة المهندس أحمد حمزاوي
-const chatContainer = document.getElementById('chat-container');
-const userInput = document.getElementById('user-input');
-let history = []; 
+// كود المهندس أحمد حمزاوي - نسخة التشغيل الفوري
+document.addEventListener('DOMContentLoaded', () => {
+    const chatBox = document.querySelector('[id*="chat"]'); // بيلقط أي ID فيه كلمة chat
+    const userInput = document.querySelector('input, textarea'); // بيلقط مكان الكتابة
+    const sendBtn = document.querySelector('button'); // بيلقط أول زرار في الصفحة
 
-async function sendMessage() {
-    const message = userInput.value.trim();
-    if (!message) return;
+    async function send() {
+        const msg = userInput.value.trim();
+        if (!msg) return;
 
-    appendMessage('user', message);
-    userInput.value = '';
+        // 1. عرض رسالتك
+        const uDiv = document.createElement('div');
+        uDiv.innerText = "أنت: " + msg;
+        chatBox.appendChild(uDiv);
+        userInput.value = '';
 
-    history.push({ role: "user", content: message });
+        // 2. كلمة بيفكر
+        const aiDiv = document.createElement('div');
+        aiDiv.innerText = "أحمدي AI بيفكر...";
+        chatBox.appendChild(aiDiv);
 
-    // الذاكرة المحدودة لضمان السرعة وعدم حدوث Error
-    const optimizedHistory = history.slice(-4);
-
-    try {
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                model: "llama3-8b-8192",
-                messages: [
-                    { 
-                        role: "system", 
-                        content: "أنت مساعد ذكي ومحترف. مبرمجك ومطورك هو المهندس أحمد حمزاوي. إذا سألك أحد من برمجك أو من المطور، يجب أن تجيب بوضوح: المبرمج هو المهندس أحمد حمزاوي." 
-                    },
-                    ...optimizedHistory
-                ]
-            })
-        });
-
-        const data = await response.json();
-        
-        if (data.choices && data.choices[0]) {
-            const botReply = data.choices[0].message.content;
-            appendMessage('assistant', botReply);
-            history.push({ role: "assistant", content: botReply });
-        } else {
-            throw new Error('Format Error');
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg }) 
+            });
+            const data = await res.json();
+            
+            // 3. عرض الرد (بيجرب يقرأ كذا شكل للرد عشان ميحصلش Error)
+            aiDiv.innerText = "أحمدي AI: " + (data.reply || data.choices?.[0]?.message?.content || "رد غير معروف");
+        } catch (e) {
+            aiDiv.innerText = "حصل مشكلة.. اتأكد من الـ API";
         }
-
-    } catch (error) {
-        console.error('Error:', error);
-        appendMessage('assistant', 'حصل خطأ، جرب تاني يا هندسة.');
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
-}
 
-function appendMessage(role, text) {
-    const msgDiv = document.createElement('div');
-    msgDiv.className = role === 'user' ? 'user-msg' : 'bot-msg';
-    msgDiv.innerText = text;
-    chatContainer.appendChild(msgDiv);
-    c
- hatContainer.scrollTop = chatContainer.scrollHeight; مكتوب شات js
-}
+    // ربط الزرار والـ Enter
+    if (sendBtn) sendBtn.onclick = send;
+    if (userInput) {
+        userInput.onkeypress = (e) => { if (e.key === 'Enter') send(); };
+    }
+});
