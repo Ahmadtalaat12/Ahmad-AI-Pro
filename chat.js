@@ -1,51 +1,57 @@
-// كود "أحمدي AI" - النسخة الصافية
-const chatBox = document.getElementById('chat-box') || document.getElementById('chat-container');
+// كود الذكاء الاصطناعي - نسخة المهندس أحمد حمزاوي
+const chatContainer = document.getElementById('chat-container');
 const userInput = document.getElementById('user-input');
-const sendBtn = document.getElementById('send-btn') || document.querySelector('button');
+let history = []; 
 
 async function sendMessage() {
     const message = userInput.value.trim();
     if (!message) return;
 
-    // إظهار رسالة المستخدم
-    const userDiv = document.createElement('div');
-    userDiv.className = 'user-msg';
-    userDiv.innerText = message;
-    chatBox.appendChild(userDiv);
-    
+    appendMessage('user', message);
     userInput.value = '';
 
-    // إظهار "بيفكر..."
-    const thinkingDiv = document.createElement('div');
-    thinkingDiv.className = 'ai-msg';
-    thinkingDiv.innerText = 'جاري التفكير...';
-    chatBox.appendChild(thinkingDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    history.push({ role: "user", content: message });
+
+    // الذاكرة المحدودة لضمان السرعة وعدم حدوث Error
+    const optimizedHistory = history.slice(-4);
 
     try {
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: message }) 
+            body: JSON.stringify({
+                model: "llama3-8b-8192",
+                messages: [
+                    { 
+                        role: "system", 
+                        content: "أنت مساعد ذكي ومحترف. مبرمجك ومطورك هو المهندس أحمد حمزاوي. إذا سألك أحد من برمجك أو من المطور، يجب أن تجيب بوضوح: المبرمج هو المهندس أحمد حمزاوي." 
+                    },
+                    ...optimizedHistory
+                ]
+            })
         });
 
         const data = await response.json();
         
-        // مسح "بيفكر" ووضع الرد
-        thinkingDiv.innerText = data.reply || data.choices[0].message.content;
+        if (data.choices && data.choices[0]) {
+            const botReply = data.choices[0].message.content;
+            appendMessage('assistant', botReply);
+            history.push({ role: "assistant", content: botReply });
+        } else {
+            throw new Error('Format Error');
+        }
 
     } catch (error) {
-        thinkingDiv.innerText = 'فيه مشكلة في الـ API يا هندسة..';
+        console.error('Error:', error);
+        appendMessage('assistant', 'حصل خطأ، جرب تاني يا هندسة.');
     }
-    chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// تشغيل الزرار
-if(sendBtn) {
-    sendBtn.onclick = sendMessage;
+function appendMessage(role, text) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = role === 'user' ? 'user-msg' : 'bot-msg';
+    msgDiv.innerText = text;
+    chatContainer.appendChild(msgDiv);
+    c
+ hatContainer.scrollTop = chatContainer.scrollHeight; مكتوب شات js
 }
-
-// تشغيل الـ Enter
-userInput.onkeypress = (e) => {
-    if (e.key === 'Enter') sendMessage();
-};
