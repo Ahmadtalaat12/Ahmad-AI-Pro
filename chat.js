@@ -1,45 +1,79 @@
-const chatBox = document.getElementById('chat-box'); // المكان اللي بتظهر فيه الرسائل
-const userInput = document.getElementById('user-input'); // مكان الكتابة
-const sendBtn = document.getElementById('send-btn'); // زرار الإرسال
+// كود واجهة "أحمدي AI Pro" - نسخة المهندس أحمد حمزاوي
+const chatBox = document.getElementById('chat-box');
+const userInput = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
 
-// دالة لإضافة الرسائل للشاشة
-function appendMessage(role, text) {
+let chatHistory = []; // ذاكرة الجلسة
+
+// دالة إضافة الرسائل بتنسيق شيك
+function appendMessage(role, text, isThinking = false) {
     const msgDiv = document.createElement('div');
     msgDiv.className = role === 'user' ? 'user-msg' : 'ai-msg';
-    msgDiv.innerText = text;
+    
+    if (isThinking) {
+        msgDiv.id = 'thinking-temp'; // علامة عشان نمسحه لما الرد يجهز
+        msgDiv.innerText = 'أحمدي AI بيفكر...';
+    } else {
+        msgDiv.innerText = text;
+    }
+    
     chatBox.appendChild(msgDiv);
-    chatBox.scrollTop = chatBox.scrollHeight; // سكرول لتحت تلقائي
+    chatBox.scrollTop = chatBox.scrollHeight;
+    return msgDiv;
 }
 
-// دالة إرسال الرسالة
+// دالة الإرسال الأساسية
 async function sendMessage() {
     const message = userInput.value.trim();
     if (!message) return;
 
-    // إظهار رسالة المستخدم
+    // إظهار رسالة المستخدم وتصفير الإدخال
     appendMessage('user', message);
     userInput.value = '';
 
+    // إضافة رسالة "بيفكر"
+    const thinkingMsg = appendMessage('ai', '', true);
+
+    // تحديث الذاكرة (آخر 4 رسايل لضمان العمق والسرعة)
+    chatHistory.push({ role: "user", content: message });
+    const optimizedContext = chatHistory.slice(-4);
+
     try {
-        // هنا بنكلم الـ Backend بتاعك أو الـ API مباشرة
-        const response = await fetch('/api/chat', { // تأكد من مسار الـ API بتاعك
+        const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: message })
+            body: JSON.stringify({ 
+                messages: [
+                    { role: "system", content: "أنت مساعد محترف ومبدع. مطورك هو المهندس أحمد حمزاوي. أجب بتعمق وتفصيل تقني." },
+                    ...optimizedContext
+                ]
+            })
         });
 
         const data = await response.json();
-        appendMessage('ai', data.reply); // 'reply' ده حسب الـ Response اللي بيرجعلك
+        
+        // حذف كلمة "بيفكر" وإضافة الرد الحقيقي
+        thinkingMsg.remove();
+
+        if (data.reply || (data.choices && data.choices[0].message)) {
+            const aiReply = data.reply || data.choices[0].message.content;
+            appendMessage('ai', aiReply);
+            chatHistory.push({ role: "assistant", content: aiReply });
+        } else {
+            throw new Error('Response Error');
+        }
+
     } catch (error) {
-        appendMessage('ai', 'فيه مشكلة حصلت يا هندسة.. حاول تاني.');
+        if (document.getElementById('thinking-temp')) {
+            document.getElementById('thinking-temp').remove();
+        }
+        appendMessage('ai', 'فيه مشكلة في الربط يا هندسة.. جرب تاني.');
         console.error('Error:', error);
     }
 }
 
-// تشغيل الإرسال عند الضغط على الزرار
+// تشغيل الإرسال (زرار أو Enter)
 sendBtn.addEventListener('click', sendMessage);
-
-// تشغيل الإرسال عند الضغط على Enter
 userInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
 });
